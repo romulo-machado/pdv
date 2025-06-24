@@ -12,6 +12,7 @@ urlpatterns = [
     path('carrinho/', views.ver_carrinho, name='carrinho'),
     path('finalizar/', views.finalizar_pedido, name='finalizar'),
     path('excluir/<int:id>/', views.excluir_item, name='excluir_item'),
+    path('finalizar_pedido/', views.finalizar_pedido, name='finalizar_pedido'),
 ]
 
 if settings.DEBUG:

@@ -67,3 +67,75 @@ def excluir_item(request, id):
     item = get_object_or_404(ItemPedido, id=id)
     item.delete()
     return redirect('carrinho')
+
+import win32print
+import win32ui
+
+def imprimir_pedido(pedido_id):
+    pedido = Pedido.objects.get(id=pedido_id)
+
+    nome_impressora = "POS-80 (copy 1)"  # Verifique o nome correto da sua impressora no Windows
+
+    # Comandos ESC/POS
+    texto_grande = b'\x1b!\x38'  # Dobro altura e largura
+    reset_texto = b'\x1b!\x00'   # Voltar ao texto normal
+    centralizar = b'\x1b\x61\x01'  # Centralizar texto
+    alinhar_esquerda = b'\x1b\x61\x00'  # Alinhar à esquerda
+    corte = b'\x1dV\x00'  # Corte total de papel
+
+    hPrinter = win32print.OpenPrinter(nome_impressora)
+    try:
+        hJob = win32print.StartDocPrinter(hPrinter, 1, ("Pedido", None, "RAW"))
+        win32print.StartPagePrinter(hPrinter)
+
+        # Cabeçalho
+        win32print.WritePrinter(hPrinter, centralizar)
+        win32print.WritePrinter(hPrinter, texto_grande)
+        win32print.WritePrinter(hPrinter, b"PIZZARIA TOP\n")
+        win32print.WritePrinter(hPrinter, reset_texto)
+
+        # Número do pedido destacado
+        win32print.WritePrinter(hPrinter, texto_grande)
+        win32print.WritePrinter(hPrinter, f"Pedido #{pedido.id}\n".encode('utf-8'))
+        win32print.WritePrinter(hPrinter, reset_texto)
+
+        win32print.WritePrinter(hPrinter, b"==========================\n")
+
+        # Itens do pedido em tamanho grande
+        win32print.WritePrinter(hPrinter, alinhar_esquerda)
+        win32print.WritePrinter(hPrinter, texto_grande)
+        for item in pedido.itens.all():
+            linha = f"{item.quantidade}x {item.produto.nome}\n"
+            win32print.WritePrinter(hPrinter, linha.encode('utf-8'))
+        win32print.WritePrinter(hPrinter, reset_texto)
+
+        win32print.WritePrinter(hPrinter, b"==========================\n")
+        win32print.WritePrinter(hPrinter, centralizar)
+        win32print.WritePrinter(hPrinter, b"\nObrigado pela preferencia!\n\n")
+        win32print.WritePrinter(hPrinter, b"==========================\n")
+
+        # Corte de papel
+        win32print.WritePrinter(hPrinter, corte)
+
+        win32print.EndPagePrinter(hPrinter)
+        win32print.EndDocPrinter(hPrinter)
+    finally:
+        win32print.ClosePrinter(hPrinter)
+
+def finalizar_pedido(request):
+    pedido_id = request.session.get('pedido_id')
+
+    if pedido_id:
+        pedido = Pedido.objects.get(id=pedido_id)
+
+        # Marca como finalizado
+        pedido.finalizado = True
+        pedido.save()
+
+        # Imprime na impressora térmica
+        imprimir_pedido(pedido_id)
+
+        # Limpa o carrinho
+        del request.session['pedido_id']
+
+    return redirect('menu')  # Ou outra página como "Pedidos Concluídos"
