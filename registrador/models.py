@@ -41,6 +41,7 @@ class ItemPedido(models.Model):
     preco_unitario = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     descricao_produto = models.CharField(max_length=150, blank=True, null=True)
     observacao = models.CharField(max_length=255, null=True, blank=True)
+    sabor2 = models.ForeignKey(Produto, related_name='itens_sabor2', on_delete=models.CASCADE, null=True, blank=True)
 
     def subtotal(self):
         if self.preco_unitario:

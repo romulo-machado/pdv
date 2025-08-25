@@ -255,6 +255,65 @@ def adicionar_ajax(request):
     
     return JsonResponse({'sucesso': False}, status=400)
 
+@csrf_exempt
+def adicionar_pizza_ajax(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        produto_id = data.get('produto_id')
+        quantidade = int(data.get('quantidade', 1))
+        tamanho = data.get('tamanho')
+        sabor2_id = data.get('sabor2_id')
+
+        produto = get_object_or_404(Produto, id=produto_id)
+        sabor2 = None
+        
+        if sabor2_id:
+            sabor2 = get_object_or_404(Produto, id=sabor2_id)
+
+        # Calcular preço baseado no tamanho e sabores
+        preco_base = produto.preco or 0
+        
+        # Definir multiplicadores por tamanho
+        multiplicadores = {
+            'Pequena': 1.0,
+            'Média': 1.3,
+            'Grande': 1.6,
+            'Gigante': 2.0
+        }
+        
+        # Se tem segundo sabor, usar o maior preço
+        if sabor2:
+            preco_base = max(preco_base, sabor2.preco or 0)
+        
+        preco_final = preco_base * multiplicadores.get(tamanho, 1.0)
+
+        # Criar descrição do produto
+        if sabor2:
+            descricao = f"Pizza {tamanho} - 1/2 {produto.nome} + 1/2 {sabor2.nome}"
+        else:
+            descricao = f"Pizza {tamanho} - {produto.nome}"
+
+        pedido_id = request.session.get('pedido_id')
+        if pedido_id:
+            pedido = Pedido.objects.get(id=pedido_id)
+        else:
+            pedido = Pedido.objects.create()
+            request.session['pedido_id'] = pedido.id
+
+        # Criar novo item sempre (não somar com existente para permitir diferentes tamanhos)
+        item = ItemPedido.objects.create(
+            pedido=pedido,
+            produto=produto,
+            quantidade=quantidade,
+            preco_unitario=preco_final,
+            descricao_produto=descricao,
+            sabor2=sabor2
+        )
+
+        return JsonResponse({'sucesso': True})
+    
+    return JsonResponse({'sucesso': False}, status=400)
+
 @require_POST
 def adicionar_combo(request):
     tamanho = request.POST.get('tamanho')

@@ -18,6 +18,7 @@ urlpatterns = [
     path('excluir/<int:id>/', views.excluir_item, name='excluir_item'),
     path('finalizar_pedido/', views.finalizar_pedido, name='finalizar_pedido'),
     path('adicionar-ajax/', views.adicionar_ajax, name='adicionar_ajax'),
+    path('adicionar-pizza-ajax/', views.adicionar_pizza_ajax, name='adicionar_pizza_ajax'),
     path("atualizar-observacao/<int:item_id>/", views.atualizar_observacao, name="atualizar_observacao"),
 ]
 
