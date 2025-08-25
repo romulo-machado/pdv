@@ -1,0 +1,66 @@
+{% extends '../componentes/base.html' %}
+
+{% block content %}
+<div class="container">
+
+    <!-- Título da página -->
+    <h2 class="text-center">Pizza {{ tamanho }}</h2>
+    <p class="text-center">Escolha os sabores das duas metades:</p>
+
+    <!-- Botão para visualizar o carrinho -->
+    <div class="text-end mb-4">
+        <a href="{% url 'carrinho' %}" class="btn btn-primary">
+            🛒 Ver Carrinho
+        </a>
+    </div>
+
+    <!-- Preço da pizza -->
+    <div class="text-center mb-4">
+        <h4>Preço: {{ preco }}</h4>
+    </div>
+
+    <!-- Formulário para escolher sabores e adicionar ao carrinho -->
+    <form action="{% url 'adicionar_combo' %}" method="post">
+        {% csrf_token %}
+
+        <!-- Campos ocultos -->
+        <input type="hidden" name="tamanho" value="{{ tamanho }}">
+        <input type="hidden" name="preco" value="{{ preco }}">
+
+        <fieldset class="mb-3">
+            <legend>Sabores</legend>
+
+            <!-- Primeira metade -->
+            <div class="mb-3">
+                <label for="sabor1" class="form-label">Sabor da Primeira Metade:</label>
+                <select name="sabor1" id="sabor1" class="form-control" required>
+                    {% for sabor in sabores %}
+                    <option value="{{ sabor.id }}">{{ sabor.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if tamanho == 'Grande' or tamanho == 'Gigante' %}
+            <!-- Segunda metade -->
+            <div class="mb-3">
+                <label for="sabor2" class="form-label">Sabor da Segunda Metade:</label>
+                <select name="sabor2" id="sabor2" class="form-control" required>
+                    {% for sabor in sabores %}
+                    <option value="{{ sabor.id }}">{{ sabor.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+        </fieldset>
+
+        <!-- Botão de envio -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-success">
+                ➕ Adicionar ao Carrinho
+            </button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

@@ -13,45 +13,99 @@
         <h1 class="text-center mb-4">🛒 Seu Carrinho - Pedido #{{ pedido.id }}</h1>
 
         {% if pedido %}
-        <table class="table table-bordered table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>Produto</th>
-                    <th>Quantidade</th>
-                    <th>Preço Unitário</th>
-                    <th>Subtotal</th>
-                    <th>Excluir item</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in pedido.itens.all %}
-                <tr>
-                    <td>{{ item.produto.nome }}</td>
-                    <td>{{ item.quantidade }}</td>
-                    <td>R$ {{ item.produto.preco|floatformat:2 }}</td>
-                    <td>R$ {{ item.subtotal|floatformat:2 }}</td>
-                    <td>
-                        <a href="{% url 'excluir_item' item.id %}" class="btn btn-danger center">Excluir</a>
-                    </td>
-                </tr>
-                <h2>
-                </h2>
-                {% endfor %}
-                <tr>
-                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                    <td><strong>R$ {{ pedido.total|floatformat:2 }}</strong></td>
-                </tr>
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Produto</th>
+            <th>Quantidade</th>
+            <th>Preço Unitário</th>
+            <th>Subtotal</th>
+            <th>Observação</th> <!-- 🔹 Nova coluna -->
+            <th>Excluir item</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in pedido.itens.all %}
+        <tr>
+            {% if item.descricao_produto %}
+            <td>{{ item.descricao_produto }}</td>
+            {% else %}
+            <td>{{ item.produto.nome }}</td>
+            {% endif %}
 
-            </tbody>
-        </table>
-        <div class="text-end">
-            <a href="{% url 'finalizar_pedido' %}" class="btn btn-success">
+            <td>{{ item.quantidade }}</td>
+
+            {% if item.produto.preco %}
+            <td>R$ {{ item.produto.preco|floatformat:2 }}</td>
+            {% else %}
+            <td>R$ {{ item.preco_unitario|floatformat:2 }}</td>
+            {% endif %}
+
+            <td>R$ {{ item.subtotal|floatformat:2 }}</td>
+
+            <!-- 🔹 Formulário de observação -->
+            <td>
+                <form action="{% url 'atualizar_observacao' item.id %}" method="post" class="d-flex">
+                    {% csrf_token %}
+                    <input type="text" name="observacao" value="{{ item.observacao }}"
+                           class="form-control form-control-sm me-2"
+                           placeholder="Ex: sem cebola">
+                    <button type="submit" class="btn btn-sm btn-primary">💾</button>
+                </form>
+            </td>
+
+            <td>
+                <a href="{% url 'excluir_item' item.id %}" class="btn btn-danger center">Excluir</a>
+            </td>
+        </tr>
+        {% endfor %}
+
+        <tr>
+            <td colspan="4" class="text-end"><strong>Total:</strong></td>
+            <td colspan="2">R$ {{ pedido.total|floatformat:2 }}</td>
+        </tr>
+    </tbody>
+</table>
+
+
+        <form action="{% url 'finalizar_pedido' %}" method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label>Nome do Cliente</label>
+                <input type="text" name="nome_cliente" class="form-control" placeholder="Digite o nome" required>
+            </div>
+
+            <div class="mb-3">
+                <label>Local de Consumo</label>
+                <select name="local_consumo" class="form-control" required>
+                    <option value="">Selecione</option>
+                    <option value="Levar">Levar</option>
+                    <option value="Mesa 1">Mesa 1</option>
+                    <option value="Mesa 2">Mesa 2</option>
+                    <option value="Mesa 3">Mesa 3</option>
+                    <option value="Mesa 4">Mesa 4</option>
+                    <option value="Mesa 5">Mesa 5</option>
+                    <option value="Mesa 6">Mesa 6</option>
+                    <option value="Mesa 7">Mesa 7</option>
+                    <option value="Mesa 8">Mesa 8</option>
+                    <option value="Mesa 9">Mesa 9</option>
+                    <option value="Mesa 10">Mesa 10</option>
+                    <option value="Mesa 11">Mesa 11</option>
+                    <option value="Mesa 12">Mesa 12</option>
+                    <option value="Delivery">Delivery</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-success">
                 ✔️ Finalizar Pedido
-            </a>
+            </button>
             <a href="{% url 'menu' %}" class="btn btn-secondary">
                 ↩️ Voltar ao Menu
             </a>
-        </div>
+        </form>
+
+
         {% else %}
         <div class="alert alert-warning text-center">
             Seu carrinho está vazio.

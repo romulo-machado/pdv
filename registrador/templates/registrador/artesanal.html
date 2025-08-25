@@ -1,0 +1,67 @@
+{% extends '../componentes/base.html' %}
+{% block content %}
+<!-- Conteúdo Principal -->
+<div class="flex-grow-1 p-4">
+    <!-- <h1>Bem-vindo ao Sistema!</h1> -->
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Artesanal</h1>
+
+        {% include '../componentes/buscador.html' %}
+
+
+        <div class="alert alert-warning text-center">
+            <p>Todos os artesanais acompanham 100g de batata frita.❗❗❗</p>
+
+        </div>
+
+        <div class="text-end mb-4">
+            <a href="{% url 'carrinho' %}" class="btn btn-primary">
+                🛒 Ver Carrinho
+            </a>
+        </div>
+
+        <div class="row">
+            {% for produto in produtos %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100">
+                    {% if produto.imagem %}
+                    <img src="{{ produto.imagem.url }}" class="card-img-top" alt="{{ produto.nome }}">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ produto.nome }}</h5>
+                        <p class="card-text">{{ produto.descricao }}</p>
+                        <p class="card-text fw-bold">R$ {{ produto.preco }}</p>
+
+                        <div class="input-group mt-auto">
+                            <!-- Botão remover -->
+                            <button class="btn btn-outline-secondary" type="button"
+                                onclick="alterarQuantidade({{ produto.id }}, -1)">➖</button>
+
+                            <!-- Campo de quantidade -->
+                            <input type="number" id="quantidade-{{ produto.id }}" value="1" min="1"
+                                class="form-control text-center" style="max-width: 60px;">
+
+                            <!-- Botão adicionar -->
+                            <button class="btn btn-outline-secondary" type="button"
+                                onclick="alterarQuantidade({{ produto.id }}, 1)">➕</button>
+
+                            <!-- Botão enviar -->
+                            <button class="btn btn-success" onclick="adicionarAoCarrinho({{ produto.id }})">✔️</button>
+                        </div>
+
+                        <!-- Mensagem de sucesso -->
+                        <div id="mensagem-{{ produto.id }}" class="text-success mt-1 small" style="display: none;">
+                            ✅ Adicionado ao carrinho!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h1 class="text-center mb-4">Adicionais</h1>
+    </div>
+</div>
+</div>
+
+{% endblock %}
