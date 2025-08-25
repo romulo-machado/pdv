@@ -216,21 +216,22 @@ def adicionar_pizza_ajax(request):
             sabor2 = get_object_or_404(Produto, id=sabor2_id)
 
         # Calcular preço baseado no tamanho e sabores
-        preco_base = produto.preco or 0
+        from decimal import Decimal
+        preco_base = produto.preco or Decimal('0')
         
         # Definir multiplicadores por tamanho
         multiplicadores = {
-            'Pequena': 1.0,
-            'Média': 1.3,
-            'Grande': 1.6,
-            'Gigante': 2.0
+            'Pequena': Decimal('1.0'),
+            'Média': Decimal('1.3'),
+            'Grande': Decimal('1.6'),
+            'Gigante': Decimal('2.0')
         }
         
         # Se tem segundo sabor, usar o maior preço
         if sabor2:
-            preco_base = max(preco_base, sabor2.preco or 0)
+            preco_base = max(preco_base, sabor2.preco or Decimal('0'))
         
-        preco_final = preco_base * multiplicadores.get(tamanho, 1.0)
+        preco_final = preco_base * multiplicadores.get(tamanho, Decimal('1.0'))
 
         # Criar descrição do produto
         if sabor2:
