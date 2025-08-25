@@ -5,8 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 from datetime import datetime
-import win32print
-import win32ui
+# Importações removidas para compatibilidade com Linux
 
 def menu(request):
     query = request.GET.get('q')  # busca o valor do campo 'q' na URL
@@ -153,80 +152,26 @@ def excluir_item(request, id):
 
 def imprimir_pedido(pedido_id):
     pedido = Pedido.objects.get(id=pedido_id)
-
-    nome_impressora = "POS-80 (copy 1)"  # Verifique o nome correto da sua impressora
-
-    # Comandos ESC/POS
-    texto_grande = b'\x1b!\x38'  # Dobro de altura e largura
-    reset_texto = b'\x1b!\x00'   # Voltar ao texto normal
-    centralizar = b'\x1b\x61\x01'  # Centralizar texto
-    alinhar_esquerda = b'\x1b\x61\x00'  # Alinhar à esquerda
-    corte = b'\x1dV\x00'  # Corte total de papel
-
-    hPrinter = win32print.OpenPrinter(nome_impressora)
-    try:
-        hJob = win32print.StartDocPrinter(hPrinter, 1, ("Pedido", None, "RAW"))
-        win32print.StartPagePrinter(hPrinter)
-
-        # Cabeçalho
-        win32print.WritePrinter(hPrinter, centralizar)
-        win32print.WritePrinter(hPrinter, texto_grande)
-        win32print.WritePrinter(hPrinter, b"BOM DE MAIS\n")
-        win32print.WritePrinter(hPrinter, reset_texto)
-
-        # Número do pedido
-        win32print.WritePrinter(hPrinter, texto_grande)
-        win32print.WritePrinter(hPrinter, f"Pedido #{pedido.id}\n".encode('utf-8'))
-        win32print.WritePrinter(hPrinter, reset_texto)
-
-        # Data e hora local
-        data_hora = datetime.now().strftime("%d/%m/%Y %H:%M")
-        win32print.WritePrinter(hPrinter, f"Data/Hora: {data_hora}\n".encode('utf-8'))
-
-        win32print.WritePrinter(hPrinter, b"------------------------------\n")
-
-        # Nome do cliente e local
-        nome = pedido.nome_cliente if pedido.nome_cliente else "Nao informado"
-        local = pedido.local_consumo if pedido.local_consumo else "Nao informado"
-
-        win32print.WritePrinter(hPrinter, alinhar_esquerda)
-        win32print.WritePrinter(hPrinter, f"Cliente: {nome}\n".encode('utf-8'))
-        win32print.WritePrinter(hPrinter, f"Local: {local}\n".encode('utf-8'))
-
-        win32print.WritePrinter(hPrinter, b"------------------------------\n")
-
-        # Itens do pedido
-        win32print.WritePrinter(hPrinter, texto_grande)
-        for item in pedido.itens.all():
-            if item.descricao_produto:
-                nome_produto = item.descricao_produto
-            else:
-                nome_produto = item.produto.nome
-
-            linha = f"{item.quantidade}x {nome_produto}\n"
-            win32print.WritePrinter(hPrinter, linha.encode('utf-8'))
-
-            # Se tiver observação, imprime logo abaixo do item
-            if item.observacao:
-                obs = f"   -> Obs: {item.observacao}\n"
-                win32print.WritePrinter(hPrinter, obs.encode('utf-8'))
-
-                
-        win32print.WritePrinter(hPrinter, reset_texto)
-
-        win32print.WritePrinter(hPrinter, b"------------------------------\n")
-
-        # Mensagem final
-        win32print.WritePrinter(hPrinter, centralizar)
-        win32print.WritePrinter(hPrinter, b"\nObrigado pela preferencia!\n\n")
-
-        # Corte do papel
-        win32print.WritePrinter(hPrinter, corte)
-
-        win32print.EndPagePrinter(hPrinter)
-        win32print.EndDocPrinter(hPrinter)
-    finally:
-        win32print.ClosePrinter(hPrinter)
+    
+    # Função de impressão simplificada para compatibilidade com Linux
+    print(f"=== PEDIDO #{pedido.id} ===")
+    print(f"Cliente: {pedido.nome_cliente or 'Não informado'}")
+    print(f"Local: {pedido.local_consumo or 'Não informado'}")
+    print("=" * 30)
+    
+    for item in pedido.itens.all():
+        if item.descricao_produto:
+            nome_produto = item.descricao_produto
+        else:
+            nome_produto = item.produto.nome
+            
+        print(f"{item.quantidade}x {nome_produto}")
+        if item.observacao:
+            print(f"   -> Obs: {item.observacao}")
+    
+    print("=" * 30)
+    print("Obrigado pela preferência!")
+    print("=" * 30)
 
 @csrf_exempt
 def adicionar_ajax(request):
