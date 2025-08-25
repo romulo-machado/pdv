@@ -230,12 +230,12 @@ def adicionar_pizza_ajax(request):
         preco_sabor1 = produto.preco or Decimal('0')
         if sabor2:
             preco_sabor2 = sabor2.preco or Decimal('0')
-            # Usar sempre o MAIOR preço entre os dois sabores
-            preco_base = max(preco_sabor1, preco_sabor2)
+            # Para pizza de dois sabores: usar sempre o MAIOR preço SEM multiplicador
+            preco_final = max(preco_sabor1, preco_sabor2)
         else:
+            # Para pizza de um sabor: aplicar o multiplicador de tamanho
             preco_base = preco_sabor1
-        
-        preco_final = preco_base * multiplicadores.get(tamanho, Decimal('1.0'))
+            preco_final = preco_base * multiplicadores.get(tamanho, Decimal('1.0'))
 
         # Criar descrição do produto
         if sabor2:
