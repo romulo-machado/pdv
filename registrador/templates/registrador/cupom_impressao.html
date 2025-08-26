@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cupom - Pedido #{{ pedido.id }}</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+            .cupom { 
+                width: 80mm; 
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                line-height: 1.2;
+            }
+        }
+        
+        @media screen {
+            body {
+                background-color: #f0f0f0;
+                padding: 20px;
+                font-family: Arial, sans-serif;
+            }
+            .cupom {
+                background: white;
+                width: 300px;
+                margin: 0 auto;
+                padding: 15px;
+                border: 1px solid #ccc;
+                font-family: 'Courier New', monospace;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+        }
+        
+        .cupom {
+            text-align: left;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .item {
+            margin-bottom: 8px;
+        }
+        
+        .total {
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        
+        .botoes {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .botoes button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .btn-imprimir {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        .btn-voltar {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print botoes">
+        <button class="btn-imprimir" onclick="imprimirCupom()">🖨️ Imprimir Cupom</button>
+        <button class="btn-voltar" onclick="voltarMenu()">🏠 Voltar ao Menu</button>
+    </div>
+
+    <div class="cupom" id="cupom">
+        <div class="header">
+            <strong>PIZZARIA XYZ</strong><br>
+            ================================<br>
+            PEDIDO: #{{ pedido.id }}<br>
+            DATA: {{ pedido.criado_em|date:"d/m/Y H:i" }}<br>
+            CLIENTE: {{ pedido.nome_cliente|default:"Não informado" }}<br>
+            LOCAL: {{ pedido.local_consumo|default:"Não informado" }}<br>
+        </div>
+
+        {% for item in pedido.itens.all %}
+        <div class="item">
+            {{ item.quantidade }}x 
+            {% if item.descricao_produto %}
+                {{ item.descricao_produto }}
+            {% else %}
+                {{ item.produto.nome }}
+            {% endif %}<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;R$ {{ item.subtotal }}<br>
+            {% if item.observacao %}
+                &nbsp;&nbsp;&nbsp;&nbsp;OBS: {{ item.observacao }}<br>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="total">
+            ================================<br>
+            TOTAL: R$ {{ pedido.total }}<br>
+        </div>
+
+        <div class="footer">
+            ================================<br>
+            Obrigado pela preferência!<br>
+            ================================
+        </div>
+    </div>
+
+    <script>
+        function imprimirCupom() {
+            // Usar a API de impressão do navegador
+            window.print();
+            
+            // Após impressão, redirecionar para o menu
+            setTimeout(() => {
+                voltarMenu();
+            }, 1000);
+        }
+        
+        function voltarMenu() {
+            window.location.href = "{% url 'menu' %}";
+        }
+        
+        // Auto-imprimir quando a página carregar (opcional)
+        {% if imprimir %}
+        window.addEventListener('load', function() {
+            // Pequeno delay para garantir que a página carregou completamente
+            setTimeout(() => {
+                imprimirCupom();
+            }, 500);
+        });
+        {% endif %}
+    </script>
+</body>
+</html>

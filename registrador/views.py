@@ -137,41 +137,23 @@ def finalizar_pedido(request):
     pedido.finalizado = True
     pedido.save()
 
-    # Imprimir o pedido
-    imprimir_pedido(pedido.id)
+    # Renderizar página de impressão com os dados do pedido
+    context = {
+        'pedido': pedido,
+        'imprimir': True
+    }
 
     # Limpar o carrinho da sessão
     del request.session['pedido_id']
 
-    return redirect('menu')
+    return render(request, 'registrador/cupom_impressao.html', context)
 
 def excluir_item(request, id):
     item = get_object_or_404(ItemPedido, id=id)
     item.delete()
     return redirect('carrinho')
 
-def imprimir_pedido(pedido_id):
-    pedido = Pedido.objects.get(id=pedido_id)
-    
-    # Função de impressão simplificada para compatibilidade com Linux
-    print(f"=== PEDIDO #{pedido.id} ===")
-    print(f"Cliente: {pedido.nome_cliente or 'Não informado'}")
-    print(f"Local: {pedido.local_consumo or 'Não informado'}")
-    print("=" * 30)
-    
-    for item in pedido.itens.all():
-        if item.descricao_produto:
-            nome_produto = item.descricao_produto
-        else:
-            nome_produto = item.produto.nome
-            
-        print(f"{item.quantidade}x {nome_produto}")
-        if item.observacao:
-            print(f"   -> Obs: {item.observacao}")
-    
-    print("=" * 30)
-    print("Obrigado pela preferência!")
-    print("=" * 30)
+
 
 @csrf_exempt
 def adicionar_ajax(request):
