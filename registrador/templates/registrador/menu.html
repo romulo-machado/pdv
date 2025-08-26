@@ -44,15 +44,10 @@
                         <div id="sabor2-div-{{ produto.id }}" class="mb-2" style="display: none;">
                             <label for="sabor2-{{ produto.id }}" class="form-label small">Segundo sabor:</label>
 
-                            <input list="sabores-{{ produto.id }}" id="sabor2-{{ produto.id }}" 
-                                   class="form-control form-control-sm" type="search"
-                                   placeholder="Digite o sabor">
-
-                            <datalist id="sabores-{{ produto.id }}">
-                                {% for sabor in produtos %}
-                                <option value="{{ sabor.nome }}" data-id="{{ sabor.id }}"></option>
-                                {% endfor %}
-                            </datalist>
+                            <select id="sabor2-{{ produto.id }}" class="form-control form-control-sm">
+                                <option value="">Selecione o segundo sabor</option>
+                                <!-- As opções serão preenchidas dinamicamente pelo JavaScript -->
+                            </select>
                         </div>
 
                         <div class="input-group mt-auto">
@@ -90,12 +85,48 @@
 
 {% block extra_js %}
 <script>
-    window.mostrarSabores = function(produtoId) {
+    // Lista de todos os produtos passada do Django para JavaScript
+    const todosProdutos = [
+        {% for produto in produtos %}
+        {
+            id: {{ produto.id }},
+            nome: "{{ produto.nome|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function mostrarSabores(produtoId) {
         const tamanhoSelect = document.getElementById(`tamanho-${produtoId}`);
         const sabor2Div = document.getElementById(`sabor2-div-${produtoId}`);
+        const sabor2Select = document.getElementById(`sabor2-${produtoId}`);
+        const tamanhoSelecionado = tamanhoSelect.value;
 
-        if (tamanhoSelect.value === 'Grande' || tamanhoSelect.value === 'Gigante') {
+        if (tamanhoSelecionado === 'Grande' || tamanhoSelecionado === 'Gigante') {
             sabor2Div.style.display = 'block';
+            
+            // Limpar opções existentes (exceto a primeira)
+            sabor2Select.innerHTML = '<option value="">Selecione o segundo sabor</option>';
+            
+            // Filtrar produtos com base no tamanho
+            const produtosFiltrados = todosProdutos.filter(produto => {
+                if (tamanhoSelecionado === 'Grande') {
+                    return produto.nome.toLowerCase().includes('grande');
+                } else if (tamanhoSelecionado === 'Gigante') {
+                    return produto.nome.toLowerCase().includes('gigante');
+                }
+                return false;
+            });
+            
+            // Se não houver produtos específicos do tamanho, mostrar todos
+            const produtosParaMostrar = produtosFiltrados.length > 0 ? produtosFiltrados : todosProdutos;
+            
+            // Adicionar opções filtradas
+            produtosParaMostrar.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.id;
+                option.textContent = produto.nome;
+                sabor2Select.appendChild(option);
+            });
         } else {
             sabor2Div.style.display = 'none';
         }
