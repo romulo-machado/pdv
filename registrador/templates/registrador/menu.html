@@ -29,19 +29,8 @@
                         <p class="card-text">{{ produto.descricao }}</p>
                         <p class="card-text fw-bold">R$ {{ produto.preco }}</p>
 
-                        <!-- Seleção de tamanho -->
-                        <div class="mb-2">
-                            <label for="tamanho-{{ produto.id }}" class="form-label small">Tamanho:</label>
-                            <select id="tamanho-{{ produto.id }}" class="form-select form-select-sm" onchange="mostrarSabores({{ produto.id }})">
-                                <option value="Pequena">Pequena</option>
-                                <option value="Média">Média</option>
-                                <option value="Grande">Grande</option>
-                                <option value="Gigante">Gigante</option>
-                            </select>
-                        </div>
-
-                        <!-- Seleção do segundo sabor (oculto inicialmente) -->
-                        <div id="sabor2-div-{{ produto.id }}" class="mb-2" style="display: none;">
+                        <!-- Seleção do segundo sabor (mostrado apenas para pizzas grandes/gigantes) -->
+                        <div id="sabor2-div-{{ produto.id }}" class="mb-2" {% if 'Grande' not in produto.nome and 'Gigante' not in produto.nome %}style="display: none;"{% endif %}>
                             <label for="sabor2-{{ produto.id }}" class="form-label small">Segundo sabor:</label>
 
                             <select id="sabor2-{{ produto.id }}" class="form-control form-control-sm">
@@ -95,80 +84,87 @@
         {% endfor %}
     ];
 
-    function mostrarSabores(produtoId) {
-        const tamanhoSelect = document.getElementById(`tamanho-${produtoId}`);
-        const sabor2Div = document.getElementById(`sabor2-div-${produtoId}`);
-        const sabor2Select = document.getElementById(`sabor2-${produtoId}`);
-        const tamanhoSelecionado = tamanhoSelect.value;
-
-        if (tamanhoSelecionado === 'Grande' || tamanhoSelecionado === 'Gigante') {
-            sabor2Div.style.display = 'block';
-            
-            // Limpar opções existentes (exceto a primeira)
-            sabor2Select.innerHTML = '<option value="">Selecione o segundo sabor</option>';
-            
-            // Filtrar produtos com base no tamanho
-            const produtosFiltrados = todosProdutos.filter(produto => {
-                if (tamanhoSelecionado === 'Grande') {
-                    return produto.nome.toLowerCase().includes('grande');
-                } else if (tamanhoSelecionado === 'Gigante') {
-                    return produto.nome.toLowerCase().includes('gigante');
-                }
-                return false;
-            });
-            
-            // Se não houver produtos específicos do tamanho, mostrar todos
-            const produtosParaMostrar = produtosFiltrados.length > 0 ? produtosFiltrados : todosProdutos;
-            
-            // Adicionar opções filtradas
-            produtosParaMostrar.forEach(produto => {
-                const option = document.createElement('option');
-                option.value = produto.id;
-                option.textContent = produto.nome;
-                sabor2Select.appendChild(option);
-            });
-        } else {
-            sabor2Div.style.display = 'none';
-        }
+    // Função para detectar tamanho pelo nome do produto
+    function detectarTamanho(nomeProduto) {
+        const nome = nomeProduto.toLowerCase();
+        if (nome.includes('gigante')) return 'Gigante';
+        if (nome.includes('grande')) return 'Grande';
+        if (nome.includes('média')) return 'Média';
+        if (nome.includes('pequena')) return 'Pequena';
+        return 'Média'; // padrão
     }
 
-function alterarQuantidade(produtoId, incremento) {
-    const campoQuantidade = document.getElementById(`quantidade-${produtoId}`);
-    let quantidade = parseInt(campoQuantidade.value) + incremento;
-    if (quantidade < 1) quantidade = 1;
-    campoQuantidade.value = quantidade;
-}
+    // Inicializar sabores para pizzas grandes/gigantes quando a página carrega
+    document.addEventListener('DOMContentLoaded', function() {
+        todosProdutos.forEach(produto => {
+            const tamanho = detectarTamanho(produto.nome);
+            const sabor2Select = document.getElementById(`sabor2-${produto.id}`);
+            
+            if ((tamanho === 'Grande' || tamanho === 'Gigante') && sabor2Select) {
+                // Filtrar produtos com base no tamanho
+                const produtosFiltrados = todosProdutos.filter(p => {
+                    if (tamanho === 'Grande') {
+                        return p.nome.toLowerCase().includes('grande');
+                    } else if (tamanho === 'Gigante') {
+                        return p.nome.toLowerCase().includes('gigante');
+                    }
+                    return false;
+                });
+                
+                // Se não houver produtos específicos do tamanho, mostrar todos
+                const produtosParaMostrar = produtosFiltrados.length > 0 ? produtosFiltrados : todosProdutos;
+                
+                // Adicionar opções filtradas
+                produtosParaMostrar.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.nome;
+                    sabor2Select.appendChild(option);
+                });
+            }
+        });
+    });
 
-function adicionarPizzaAoCarrinho(produtoId) {
-    const quantidade = document.getElementById(`quantidade-${produtoId}`).value;
-    const tamanho = document.getElementById(`tamanho-${produtoId}`).value;
-    const sabor2Select = document.getElementById(`sabor2-${produtoId}`);
-    const sabor2Id = sabor2Select.value || null;
+    function alterarQuantidade(produtoId, incremento) {
+        const campoQuantidade = document.getElementById(`quantidade-${produtoId}`);
+        let quantidade = parseInt(campoQuantidade.value) + incremento;
+        if (quantidade < 1) quantidade = 1;
+        campoQuantidade.value = quantidade;
+    }
 
-    fetch("{% url 'adicionar_pizza_ajax' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({
-            produto_id: produtoId,
-            quantidade: parseInt(quantidade),
-            tamanho: tamanho,
-            sabor2_id: sabor2Id
+    function adicionarPizzaAoCarrinho(produtoId) {
+        const quantidade = document.getElementById(`quantidade-${produtoId}`).value;
+        const sabor2Select = document.getElementById(`sabor2-${produtoId}`);
+        const sabor2Id = sabor2Select ? sabor2Select.value || null : null;
+        
+        // Detectar tamanho pelo nome do produto
+        const produto = todosProdutos.find(p => p.id == produtoId);
+        const tamanho = detectarTamanho(produto.nome);
+
+        fetch("{% url 'adicionar_pizza_ajax' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                produto_id: produtoId,
+                quantidade: parseInt(quantidade),
+                tamanho: tamanho,
+                sabor2_id: sabor2Id
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.sucesso) {
-            const mensagem = document.getElementById(`mensagem-${produtoId}`);
-            mensagem.style.display = 'block';
-            setTimeout(() => {
-                mensagem.style.display = 'none';
-            }, 2000);
-        }
-    })
-    .catch(error => console.error('Erro:', error));
-}
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                const mensagem = document.getElementById(`mensagem-${produtoId}`);
+                mensagem.style.display = 'block';
+                setTimeout(() => {
+                    mensagem.style.display = 'none';
+                }, 2000);
+            }
+        })
+        .catch(error => console.error('Erro:', error));
+    }
 </script>
 {% endblock %}
