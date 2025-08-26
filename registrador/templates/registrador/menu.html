@@ -43,12 +43,16 @@
                         <!-- Seleção do segundo sabor (oculto inicialmente) -->
                         <div id="sabor2-div-{{ produto.id }}" class="mb-2" style="display: none;">
                             <label for="sabor2-{{ produto.id }}" class="form-label small">Segundo sabor:</label>
-                            <select id="sabor2-{{ produto.id }}" class="form-select form-select-sm">
-                                <option value="">Selecione o segundo sabor</option>
+
+                            <input list="sabores-{{ produto.id }}" id="sabor2-{{ produto.id }}" 
+                                   class="form-control form-control-sm" type="search"
+                                   placeholder="Digite o sabor">
+
+                            <datalist id="sabores-{{ produto.id }}">
                                 {% for sabor in produtos %}
-                                <option value="{{ sabor.id }}">{{ sabor.nome }}</option>
+                                <option value="{{ sabor.nome }}" data-id="{{ sabor.id }}"></option>
                                 {% endfor %}
-                            </select>
+                            </datalist>
                         </div>
 
                         <div class="input-group mt-auto">
@@ -86,16 +90,16 @@
 
 {% block extra_js %}
 <script>
-function mostrarSabores(produtoId) {
-    const tamanhoSelect = document.getElementById(`tamanho-${produtoId}`);
-    const sabor2Div = document.getElementById(`sabor2-div-${produtoId}`);
-    
-    if (tamanhoSelect.value === 'Grande' || tamanhoSelect.value === 'Gigante') {
-        sabor2Div.style.display = 'block';
-    } else {
-        sabor2Div.style.display = 'none';
+    window.mostrarSabores = function(produtoId) {
+        const tamanhoSelect = document.getElementById(`tamanho-${produtoId}`);
+        const sabor2Div = document.getElementById(`sabor2-div-${produtoId}`);
+
+        if (tamanhoSelect.value === 'Grande' || tamanhoSelect.value === 'Gigante') {
+            sabor2Div.style.display = 'block';
+        } else {
+            sabor2Div.style.display = 'none';
+        }
     }
-}
 
 function alterarQuantidade(produtoId, incremento) {
     const campoQuantidade = document.getElementById(`quantidade-${produtoId}`);
