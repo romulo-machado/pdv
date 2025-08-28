@@ -135,9 +135,17 @@ def finalizar_pedido(request):
     pedido.nome_cliente = request.POST.get('nome_cliente')
     pedido.local_consumo = request.POST.get('local_consumo')
     
-    # Processar múltiplas formas de pagamento
+    # Processar múltiplas formas de pagamento com valores
     formas_pagamento = request.POST.getlist('forma_pagamento')
-    pedido.forma_pagamento = ', '.join(formas_pagamento) if formas_pagamento else ''
+    detalhes_pagamento = []
+    
+    for forma in formas_pagamento:
+        valor_campo = f'valor_{forma.lower()}'
+        valor = request.POST.get(valor_campo, '0')
+        if valor and float(valor) > 0:
+            detalhes_pagamento.append(f'{forma}: R$ {float(valor):.2f}')
+    
+    pedido.forma_pagamento = ' | '.join(detalhes_pagamento) if detalhes_pagamento else ''
     
     pedido.finalizado = True
     pedido.save()
