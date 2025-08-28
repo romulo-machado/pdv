@@ -136,11 +136,7 @@
             <strong>Local:</strong> {{ pedido.local_consumo|default:"Não informado" }}<br>
             <strong>Pagamento:</strong><br>
             {% if pedido.forma_pagamento %}
-                {% for forma in pedido.forma_pagamento|split:" | " %}
-                    {{ forma }}<br>
-                {% endfor %}
-            {% else %}
-                Não informado<br>
+                <div>{{ pedido.forma_pagamento }}</div>
             {% endif %}
             <strong>Data:</strong> {{ pedido.criado_em|date:"d/m/Y H:i" }}<br>
             ================================<br>
