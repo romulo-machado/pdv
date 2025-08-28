@@ -134,6 +134,11 @@ def finalizar_pedido(request):
     # Salvar os campos do formulário
     pedido.nome_cliente = request.POST.get('nome_cliente')
     pedido.local_consumo = request.POST.get('local_consumo')
+    
+    # Processar múltiplas formas de pagamento
+    formas_pagamento = request.POST.getlist('forma_pagamento')
+    pedido.forma_pagamento = ', '.join(formas_pagamento) if formas_pagamento else ''
+    
     pedido.finalizado = True
     pedido.save()
 

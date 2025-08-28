@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -9,14 +8,14 @@
         @media print {
             body { margin: 0; }
             .no-print { display: none; }
-            .cupom { 
-                width: 80mm; 
+            .cupom {
+                width: 80mm;
                 font-family: 'Courier New', monospace;
                 font-size: 16px;
                 line-height: 1.3;
             }
         }
-        
+
         @media screen {
             body {
                 background-color: #f0f0f0;
@@ -34,11 +33,11 @@
                 line-height: 1.5;
             }
         }
-        
+
         .cupom {
             text-align: left;
         }
-        
+
         .header {
             text-align: center;
             border-bottom: 1px dashed #000;
@@ -47,12 +46,12 @@
             font-size: 18px;
             font-weight: bold;
         }
-        
+
         .item {
             margin-bottom: 10px;
             font-size: 16px;
         }
-        
+
         .total {
             border-top: 1px dashed #000;
             padding-top: 12px;
@@ -60,7 +59,7 @@
             font-weight: bold;
             font-size: 18px;
         }
-        
+
         .footer {
             text-align: center;
             border-top: 1px dashed #000;
@@ -68,26 +67,26 @@
             margin-top: 12px;
             font-size: 16px;
         }
-        
+
         .botoes {
             text-align: center;
             margin: 20px 0;
         }
-        
+
         .botoes button {
             margin: 5px;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
         }
-        
+
         .btn-imprimir {
             background-color: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
         }
-        
+
         .btn-voltar {
             background-color: #6c757d;
             color: white;
@@ -114,7 +113,7 @@
 
         {% for item in pedido.itens.all %}
         <div class="item">
-            {{ item.quantidade }}x 
+            {{ item.quantidade }}x
             {% if item.descricao_produto %}
                 {{ item.descricao_produto }}
             {% else %}
@@ -133,9 +132,12 @@
         </div>
 
         <div class="footer">
+            <strong>Cliente:</strong> {{ pedido.nome_cliente|default:"Não informado" }}<br>
+            <strong>Local:</strong> {{ pedido.local_consumo|default:"Não informado" }}<br>
+            <strong>Pagamento:</strong> {{ pedido.forma_pagamento|default:"Não informado" }}<br>
+            <strong>Data:</strong> {{ pedido.criado_em|date:"d/m/Y H:i" }}<br>
             ================================<br>
-            Obrigado pela preferência!<br>
-            ================================
+            Obrigado pela preferência!
         </div>
     </div>
 
@@ -143,17 +145,17 @@
         function imprimirCupom() {
             // Usar a API de impressão do navegador
             window.print();
-            
+
             // Após impressão, redirecionar para o menu
             setTimeout(() => {
                 voltarMenu();
             }, 1000);
         }
-        
+
         function voltarMenu() {
             window.location.href = "{% url 'menu' %}";
         }
-        
+
         // Auto-imprimir quando a página carregar (opcional)
         {% if imprimir %}
         window.addEventListener('load', function() {

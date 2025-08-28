@@ -27,6 +27,7 @@ class Pedido(models.Model):
     finalizado = models.BooleanField(default=False)
     nome_cliente = models.CharField(max_length=100, blank=True, null=True)
     local_consumo = models.CharField(max_length=100, blank=True, null=True)
+    forma_pagamento = models.CharField(max_length=200, blank=True, null=True)
 
     def total(self):
         return sum(item.subtotal() for item in self.itens.all())
