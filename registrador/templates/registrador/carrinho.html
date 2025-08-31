@@ -13,62 +13,62 @@
         <h1 class="text-center mb-4">🛒 Seu Carrinho - Pedido #{{ pedido.id }}</h1>
 
         {% if pedido %}
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Produto</th>
-            <th>Quantidade</th>
-            <th>Preço Unitário</th>
-            <th>Subtotal</th>
-            <th>Observação</th> <!-- 🔹 Nova coluna -->
-            <th>Excluir item</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in pedido.itens.all %}
-        <tr>
-            {% if item.descricao_produto %}
-            <td>{{ item.descricao_produto }}</td>
-            {% else %}
-            <td>{{ item.produto.nome }}</td>
-            {% endif %}
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                    <th>Preço Unitário</th>
+                    <th>Subtotal</th>
+                    <th>Observação</th>
+                    <th>Excluir item</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in pedido.itens.all %}
+                <tr>
+                    {% if item.descricao_produto %}
+                    <td>{{ item.descricao_produto }}</td>
+                    {% else %}
+                    <td>{{ item.produto.nome }}</td>
+                    {% endif %}
 
-            <td>{{ item.quantidade }}</td>
+                    <td>{{ item.quantidade }}</td>
 
-            {% if item.produto.preco %}
-            <td>R$ {{ item.produto.preco|floatformat:2 }}</td>
-            {% else %}
-            <td>R$ {{ item.preco_unitario|floatformat:2 }}</td>
-            {% endif %}
+                    {% if item.produto.preco %}
+                    <td>R$ {{ item.produto.preco|floatformat:2 }}</td>
+                    {% else %}
+                    <td>R$ {{ item.preco_unitario|floatformat:2 }}</td>
+                    {% endif %}
 
-            <td>R$ {{ item.subtotal|floatformat:2 }}</td>
+                    <td>R$ {{ item.subtotal|floatformat:2 }}</td>
 
-            <!-- 🔹 Formulário de observação -->
-            <td>
-                <form action="{% url 'atualizar_observacao' item.id %}" method="post" class="d-flex">
-                    {% csrf_token %}
-                    <input type="text" name="observacao" value="{{ item.observacao }}"
-                           class="form-control form-control-sm me-2"
-                           placeholder="Ex: sem cebola">
-                    <button type="submit" class="btn btn-sm btn-primary">💾</button>
-                </form>
-            </td>
+                    <!-- 🔹 Formulário de observação -->
+                    <td>
+                        <form action="{% url 'atualizar_observacao' item.id %}" method="post" class="d-flex">
+                            {% csrf_token %}
+                            <input type="text" name="observacao" value="{{ item.observacao }}"
+                                   class="form-control form-control-sm me-2"
+                                   placeholder="Ex: sem cebola">
+                            <button type="submit" class="btn btn-sm btn-primary">💾</button>
+                        </form>
+                    </td>
 
-            <td>
-                <a href="{% url 'excluir_item' item.id %}" class="btn btn-danger center">Excluir</a>
-            </td>
-        </tr>
-        {% endfor %}
+                    <td>
+                        <a href="{% url 'excluir_item' item.id %}" class="btn btn-danger center">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
 
-        <tr>
-            <td colspan="4" class="text-end"><strong>Total:</strong></td>
-            <td colspan="2">R$ {{ pedido.total|floatformat:2 }}</td>
-        </tr>
-    </tbody>
-</table>
+                <tr>
+                    <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                    <td colspan="2">R$ {{ pedido.total|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-
-        <form action="{% url 'finalizar_pedido' %}" method="post">
+        <!-- 🔹 Formulário principal com ID para validação -->
+        <form id="form_finalizar" action="{% url 'finalizar_pedido' %}" method="post">
             {% csrf_token %}
 
             <div class="mb-3">
@@ -118,7 +118,7 @@
                 <div class="row mb-2">
                     <div class="col-6">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="forma_pagamento" value="Crédito" id="credito" onchange="toggleValorInput('credito')">
+                            <input class="form-check-input" type="checkbox" name="forma_pagamento" value="Credito" id="credito" onchange="toggleValorInput('credito')">
                             <label class="form-check-label" for="credito">💳 Crédito</label>
                         </div>
                     </div>
@@ -130,7 +130,7 @@
                 <div class="row mb-2">
                     <div class="col-6">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="forma_pagamento" value="Débito" id="debito" onchange="toggleValorInput('debito')">
+                            <input class="form-check-input" type="checkbox" name="forma_pagamento" value="Debito" id="debito" onchange="toggleValorInput('debito')">
                             <label class="form-check-label" for="debito">💳 Débito</label>
                         </div>
                     </div>
@@ -168,7 +168,6 @@
                 ↩️ Voltar ao Menu
             </a>
         </form>
-
 
         {% else %}
         <div class="alert alert-warning text-center">
@@ -242,8 +241,8 @@
             }
         }
         
-        // Validação antes do envio
-        document.querySelector('form').addEventListener('submit', function(e) {
+        // 🔹 Validação apenas no formulário principal
+        document.querySelector('#form_finalizar').addEventListener('submit', function(e) {
             const formasChecked = document.querySelectorAll('input[name="forma_pagamento"]:checked');
             
             if (formasChecked.length === 0) {
