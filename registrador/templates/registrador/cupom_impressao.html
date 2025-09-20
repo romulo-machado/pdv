@@ -11,7 +11,7 @@
             .cupom { 
                 width: 80mm; 
                 font-family: 'Courier New', monospace;
-                font-size: 22px;
+                font-size: 29px; /* antes era 22px */
                 line-height: 1.3;
                 font-weight: bold;
             }
@@ -30,7 +30,7 @@
                 padding: 25px;
                 border: 1px solid #ccc;
                 font-family: 'Courier New', monospace;
-                font-size: 22px;
+                font-size: 29px; /* antes era 22px */
                 line-height: 1.5;
                 font-weight: bold;
             }
@@ -45,13 +45,13 @@
             border-bottom: 1px dashed #000;
             padding-bottom: 12px;
             margin-bottom: 12px;
-            font-size: 25px;
+            font-size: 33px; /* antes era 25px */
             font-weight: bold;
         }
 
         .item {
             margin-bottom: 12px;
-            font-size: 22px;
+            font-size: 29px; /* antes era 22px */
             font-weight: bold;
         }
 
@@ -60,7 +60,7 @@
             padding-top: 12px;
             margin-top: 12px;
             font-weight: bold;
-            font-size: 25px;
+            font-size: 33px; /* antes era 25px */
         }
 
         .footer {
@@ -68,7 +68,7 @@
             border-top: 1px dashed #000;
             padding-top: 12px;
             margin-top: 12px;
-            font-size: 22px;
+            font-size: 29px; /* antes era 22px */
             font-weight: bold;
         }
 
@@ -107,7 +107,7 @@
 
     <div class="cupom" id="cupom">
         <div class="header">
-            <strong>PIZZARIA XYZ</strong><br>
+            <strong>PIZZARIA BOM D'MAIS</strong><br>
             ================================<br>
             PEDIDO: #{{ pedido.id }}<br>
             DATA: {{ pedido.criado_em|date:"d/m/Y H:i" }}<br>
@@ -133,12 +133,6 @@
         <div class="total">
             ================================<br>
             TOTAL: R$ {{ pedido.total }}<br>
-        </div>
-
-        <div class="footer">
-            ================================<br>
-            Obrigado pela preferência!<br>
-            ================================
         </div>
     </div>
 

@@ -166,8 +166,6 @@ def excluir_item(request, id):
     item.delete()
     return redirect('carrinho')
 
-
-
 @csrf_exempt
 def adicionar_ajax(request):
     if request.method == 'POST':
@@ -216,9 +214,9 @@ def adicionar_pizza_ajax(request):
         # Definir multiplicadores por tamanho
         multiplicadores = {
             'Pequena': Decimal('1.0'),
-            'Média': Decimal('1.3'),
-            'Grande': Decimal('1.6'),
-            'Gigante': Decimal('2.0')
+            'Média': Decimal('1.0'),
+            'Grande': Decimal('1.0'),
+            'Gigante': Decimal('1.0')
         }
         
         # Sempre usar o maior preço entre os sabores (se houver segundo sabor)
