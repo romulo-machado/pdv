@@ -11,6 +11,9 @@ class Produto(models.Model):
         ('artesanal', 'Artesanal'),
         ('sabor_promocao', 'Promocao'),
         ('entrada', 'Entrada'),
+        ('espeto', 'Espeto'),
+        ('porcoes', 'Porções'),
+        ('pf_refeicao', 'PF_Refeição'),
     )
 
     nome = models.CharField(max_length=100)

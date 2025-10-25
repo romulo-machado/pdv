@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path('', views.menu, name='menu'),
     path('artesanal/', views.artesanais, name='artesanais'),
+    path('espeto/', views.espeto, name='espeto'),
     path('combos/', views.combos, name='combos'),
     path('entrada/', views.entrada, name='entrada'),
     path('combos/<str:tamanho>/<str:preco>/', views.combos_sabores, name='combos_sabores'),
@@ -20,6 +21,7 @@ urlpatterns = [
     path('adicionar-ajax/', views.adicionar_ajax, name='adicionar_ajax'),
     path('adicionar-pizza-ajax/', views.adicionar_pizza_ajax, name='adicionar_pizza_ajax'),
     path("atualizar-observacao/<int:item_id>/", views.atualizar_observacao, name="atualizar_observacao"),
+    path('relatorio/', views.relatorio_vendas, name='relatorio_vendas'),
 ]
 
 if settings.DEBUG:

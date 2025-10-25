@@ -7,6 +7,32 @@ import json
 from datetime import datetime
 # Importações removidas para compatibilidade com Linux
 
+def espeto(request):
+    query = request.GET.get('q')  # busca o valor do campo 'q' na URL
+
+    if query:
+        produtos = Produto.objects.filter(categoria='espeto', nome__icontains=query)
+        produtos_refeicao = Produto.objects.filter(categoria='pf_refeicao', nome__icontains=query)
+        produtos_espeto = Produto.objects.filter(categoria='porcoes', nome__icontains=query)
+    else:
+        produtos = Produto.objects.filter(categoria='espeto')
+        produtos_refeicao = Produto.objects.filter(categoria='pf_refeicao')
+        produtos_espeto = Produto.objects.filter(categoria='porcoes')
+
+    pedido_id = request.session.get('pedido_id')
+    if pedido_id:
+        pedido = Pedido.objects.get(id=pedido_id)
+    else:
+        pedido = None
+
+    return render(request, 'registrador/espeto.html', {
+        'produtos_espeto': produtos_espeto,
+        'produtos_refeicao': produtos_refeicao,
+        'produtos': produtos,
+        'pedido': pedido,
+        'query': query  # envia a query de volta pro template (opcional)
+    })
+
 def menu(request):
     query = request.GET.get('q')  # busca o valor do campo 'q' na URL
 
@@ -301,5 +327,70 @@ def atualizar_observacao(request, item_id):
         item.observacao = observacao
         item.save()
     return redirect("carrinho")
+
+def relatorio_vendas(request):
+    pedidos = Pedido.objects.filter(finalizado=True).order_by('-criado_em')
+    
+    # Filtros por data/hora
+    data_inicio = request.GET.get('data_inicio')
+    hora_inicio = request.GET.get('hora_inicio', '00:00')
+    data_fim = request.GET.get('data_fim')
+    hora_fim = request.GET.get('hora_fim', '23:59')
+    
+    if data_inicio and data_fim:
+        from datetime import datetime
+        # Combinar data e hora
+        datetime_inicio = datetime.strptime(f"{data_inicio} {hora_inicio}", '%Y-%m-%d %H:%M')
+        datetime_fim = datetime.strptime(f"{data_fim} {hora_fim}", '%Y-%m-%d %H:%M')
+        
+        pedidos = pedidos.filter(
+            criado_em__gte=datetime_inicio,
+            criado_em__lte=datetime_fim
+        )
+    
+    # Calcular totais por forma de pagamento
+    totais_pagamento = {
+        'Dinheiro': 0,
+        'Credito': 0,
+        'Debito': 0,
+        'Pix': 0
+    }
+    
+    total_geral = 0
+    
+    for pedido in pedidos:
+        total_geral += pedido.total()
+        
+        if pedido.forma_pagamento:
+            # Processar múltiplas formas de pagamento
+            formas = pedido.forma_pagamento.split(' | ')
+            for forma in formas:
+                if ':' in forma:
+                    nome_forma, valor_str = forma.split(': R$ ')
+                    try:
+                        valor = float(valor_str)
+                        nome_forma = nome_forma.strip()
+                        if nome_forma in totais_pagamento:
+                            totais_pagamento[nome_forma] += valor
+                    except ValueError:
+                        continue
+    
+    # Calcular ticket médio
+    num_pedidos = pedidos.count()
+    ticket_medio = total_geral / num_pedidos if num_pedidos > 0 else 0
+    
+    context = {
+        'pedidos': pedidos,
+        'totais_pagamento': totais_pagamento,
+        'total_geral': total_geral,
+        'num_pedidos': num_pedidos,
+        'ticket_medio': ticket_medio,
+        'data_inicio': data_inicio,
+        'hora_inicio': hora_inicio,
+        'data_fim': data_fim,
+        'hora_fim': hora_fim,
+    }
+    
+    return render(request, 'registrador/relatorio.html', context)
 
 

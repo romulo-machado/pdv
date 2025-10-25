@@ -1,0 +1,127 @@
+
+{% extends 'componentes/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Relatório de Vendas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>📊 Relatório de Vendas</h2>
+    
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Filtros</h5>
+            <form method="GET" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Data Início</label>
+                    <input type="date" name="data_inicio" class="form-control" value="{{ data_inicio }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hora Início</label>
+                    <input type="time" name="hora_inicio" class="form-control" value="{{ hora_inicio }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Data Fim</label>
+                    <input type="date" name="data_fim" class="form-control" value="{{ data_fim }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hora Fim</label>
+                    <input type="time" name="hora_fim" class="form-control" value="{{ hora_fim }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">🔍 Filtrar</button>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <a href="{% url 'relatorio_vendas' %}" class="btn btn-secondary">🔄 Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumo por Forma de Pagamento -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">💰 Total por Forma de Pagamento</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <p><strong>💵 Dinheiro:</strong> R$ {{ totais_pagamento.Dinheiro|floatformat:2 }}</p>
+                            <p><strong>💳 Crédito:</strong> R$ {{ totais_pagamento.Credito|floatformat:2 }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p><strong>💳 Débito:</strong> R$ {{ totais_pagamento.Debito|floatformat:2 }}</p>
+                            <p><strong>📱 Pix:</strong> R$ {{ totais_pagamento.Pix|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h4><strong>Total Geral: R$ {{ total_geral|floatformat:2 }}</strong></h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">📈 Estatísticas</h5>
+                    <p><strong>Total de Pedidos:</strong> {{ num_pedidos }}</p>
+                    {% if num_pedidos > 0 %}
+                    <p><strong>Ticket Médio:</strong> R$ {{ ticket_medio|floatformat:2 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Pedidos -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">📋 Lista de Pedidos</h5>
+            {% if pedidos %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Pedido #</th>
+                            <th>Data/Hora</th>
+                            <th>Cliente</th>
+                            <th>Local</th>
+                            <th>Forma Pagamento</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                        <tr>
+                            <td>#{{ pedido.id }}</td>
+                            <td>{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
+                            <td>{{ pedido.nome_cliente|default:"Não informado" }}</td>
+                            <td>{{ pedido.local_consumo|default:"Não informado" }}</td>
+                            <td>
+                                {% if pedido.forma_pagamento %}
+                                    {% for forma in pedido.forma_pagamento|split:" | " %}
+                                        <small class="d-block">{{ forma }}</small>
+                                    {% endfor %}
+                                {% else %}
+                                    <small class="text-muted">Não informado</small>
+                                {% endif %}
+                            </td>
+                            <td><strong>R$ {{ pedido.total|floatformat:2 }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <p>Nenhum pedido encontrado para o período selecionado.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'menu' %}" class="btn btn-secondary">↩️ Voltar ao Menu</a>
+    </div>
+</div>
+{% endblock %}
