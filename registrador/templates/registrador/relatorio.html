@@ -76,8 +76,8 @@
     <!-- Lista de Pedidos -->
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">📋 Lista de Pedidos</h5>
-            {% if pedidos %}
+            <h5 class="card-title">📋 Lista de Pedidos (Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }})</h5>
+            {% if page_obj %}
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead class="table-dark">
@@ -88,10 +88,11 @@
                             <th>Local</th>
                             <th>Forma Pagamento</th>
                             <th>Total</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for pedido in pedidos %}
+                        {% for pedido in page_obj %}
                         <tr>
                             <td>#{{ pedido.id }}</td>
                             <td>{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
@@ -107,11 +108,46 @@
                                 {% endif %}
                             </td>
                             <td><strong>R$ {{ pedido.total|floatformat:2 }}</strong></td>
+                            <td>
+                                <a href="{% url 'reimprimir_pedido' pedido.id %}" class="btn btn-sm btn-primary" target="_blank" title="Reimprimir">
+                                    🖨️
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Paginação -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Navegação de página">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if hora_inicio %}&hora_inicio={{ hora_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if hora_fim %}&hora_fim={{ hora_fim }}{% endif %}">Primeira</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if hora_inicio %}&hora_inicio={{ hora_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if hora_fim %}&hora_fim={{ hora_fim }}{% endif %}">Anterior</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                    </li>
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if hora_inicio %}&hora_inicio={{ hora_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if hora_fim %}&hora_fim={{ hora_fim }}{% endif %}">Próxima</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if data_inicio %}&data_inicio={{ data_inicio }}{% endif %}{% if hora_inicio %}&hora_inicio={{ hora_inicio }}{% endif %}{% if data_fim %}&data_fim={{ data_fim }}{% endif %}{% if hora_fim %}&hora_fim={{ hora_fim }}{% endif %}">Última</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
             {% else %}
             <div class="alert alert-info text-center">
                 <p>Nenhum pedido encontrado para o período selecionado.</p>

@@ -22,6 +22,7 @@ urlpatterns = [
     path('adicionar-pizza-ajax/', views.adicionar_pizza_ajax, name='adicionar_pizza_ajax'),
     path("atualizar-observacao/<int:item_id>/", views.atualizar_observacao, name="atualizar_observacao"),
     path('relatorio/', views.relatorio_vendas, name='relatorio_vendas'),
+    path('reimprimir/<int:pedido_id>/', views.reimprimir_pedido, name='reimprimir_pedido'),
 ]
 
 if settings.DEBUG:

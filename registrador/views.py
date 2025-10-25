@@ -310,6 +310,18 @@ def adicionar_combo(request):
         pedido = Pedido.objects.get(id=pedido_id)
 
     # Criar item no carrinho com preço e descrição personalizada
+
+
+def reimprimir_pedido(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id, finalizado=True)
+    
+    context = {
+        'pedido': pedido,
+        'imprimir': True
+    }
+    
+    return render(request, 'registrador/cupom_impressao.html', context)
+
     ItemPedido.objects.create(
         pedido=pedido,
         produto=produto_base,
@@ -329,6 +341,8 @@ def atualizar_observacao(request, item_id):
     return redirect("carrinho")
 
 def relatorio_vendas(request):
+    from django.core.paginator import Paginator
+    
     pedidos = Pedido.objects.filter(finalizado=True).order_by('-criado_em')
     
     # Filtros por data/hora
@@ -347,6 +361,11 @@ def relatorio_vendas(request):
             criado_em__gte=datetime_inicio,
             criado_em__lte=datetime_fim
         )
+    
+    # Paginação - 100 itens por página
+    paginator = Paginator(pedidos, 100)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
     
     # Calcular totais por forma de pagamento
     totais_pagamento = {
@@ -380,7 +399,7 @@ def relatorio_vendas(request):
     ticket_medio = total_geral / num_pedidos if num_pedidos > 0 else 0
     
     context = {
-        'pedidos': pedidos,
+        'page_obj': page_obj,
         'totais_pagamento': totais_pagamento,
         'total_geral': total_geral,
         'num_pedidos': num_pedidos,
