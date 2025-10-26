@@ -310,6 +310,15 @@ def adicionar_combo(request):
         pedido = Pedido.objects.get(id=pedido_id)
 
     # Criar item no carrinho com preço e descrição personalizada
+    ItemPedido.objects.create(
+        pedido=pedido,
+        produto=produto_base,
+        quantidade=1,
+        preco_unitario=preco_combo,
+        descricao_produto=descricao_combo
+    )
+
+    return redirect('menu')
 
 
 def reimprimir_pedido(request, pedido_id):
@@ -321,16 +330,6 @@ def reimprimir_pedido(request, pedido_id):
     }
     
     return render(request, 'registrador/cupom_impressao.html', context)
-
-    ItemPedido.objects.create(
-        pedido=pedido,
-        produto=produto_base,
-        quantidade=1,
-        preco_unitario=preco_combo,
-        descricao_produto = descricao_combo
-    )
-
-    return redirect('menu')
 
 def atualizar_observacao(request, item_id):
     item = get_object_or_404(ItemPedido, id=item_id)
