@@ -1,3 +1,55 @@
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('menu')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            return redirect('menu')
+        else:
+            messages.error(request, 'Usuário ou senha incorretos')
+    
+    return render(request, 'registrador/login.html')
+
+def logout_view(request):
+    auth_logout(request)
+    return redirect('login')
+
+def registro_view(request):
+    if request.user.is_authenticated:
+        return redirect('menu')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        
+        if password1 != password2:
+            messages.error(request, 'As senhas não coincidem')
+            return render(request, 'registrador/registro.html')
+        
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Nome de usuário já existe')
+            return render(request, 'registrador/registro.html')
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email já cadastrado')
+            return render(request, 'registrador/registro.html')
+        
+        user = User.objects.create_user(username=username, email=email, password=password1)
+        auth_login(request, user)
+        messages.success(request, 'Conta criada com sucesso!')
+        return redirect('menu')
+    
+    return render(request, 'registrador/registro.html')
+
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from .models import Produto, Pedido, ItemPedido, TamanhoPizza
@@ -5,10 +57,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 from datetime import datetime
-# Importações removidas para compatibilidade com Linux
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
 
+@login_required(login_url='login')
 def espeto(request):
-    query = request.GET.get('q')  # busca o valor do campo 'q' na URL
+    query = request.GET.get('q')
 
     if query:
         produtos = Produto.objects.filter(categoria='espeto', nome__icontains=query)
@@ -21,7 +77,7 @@ def espeto(request):
 
     pedido_id = request.session.get('pedido_id')
     if pedido_id:
-        pedido = Pedido.objects.get(id=pedido_id)
+        pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
     else:
         pedido = None
 
@@ -30,11 +86,12 @@ def espeto(request):
         'produtos_refeicao': produtos_refeicao,
         'produtos': produtos,
         'pedido': pedido,
-        'query': query  # envia a query de volta pro template (opcional)
+        'query': query
     })
 
+@login_required(login_url='login')
 def menu(request):
-    query = request.GET.get('q')  # busca o valor do campo 'q' na URL
+    query = request.GET.get('q')
 
     if query:
         produtos = Produto.objects.filter(categoria='pizza', nome__icontains=query)
@@ -43,18 +100,19 @@ def menu(request):
 
     pedido_id = request.session.get('pedido_id')
     if pedido_id:
-        pedido = Pedido.objects.get(id=pedido_id)
+        pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
     else:
         pedido = None
 
     return render(request, 'registrador/menu.html', {
         'produtos': produtos,
         'pedido': pedido,
-        'query': query  # envia a query de volta pro template (opcional)
+        'query': query
     })
 
+@login_required(login_url='login')
 def entrada(request):
-    query = request.GET.get('q')  # busca o valor do campo 'q' na URL
+    query = request.GET.get('q')
 
     if query:
         produtos = Produto.objects.filter(categoria='entrada', nome__icontains=query)
@@ -63,30 +121,33 @@ def entrada(request):
 
     pedido_id = request.session.get('pedido_id')
     if pedido_id:
-        pedido = Pedido.objects.get(id=pedido_id)
+        pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
     else:
         pedido = None
 
     return render(request, 'registrador/entrada.html', {
         'produtos': produtos,
         'pedido': pedido,
-        'query': query  # envia a query de volta pro template (opcional)
+        'query': query
     })
 
+@login_required(login_url='login')
 def combos(request):
     tamanhos = TamanhoPizza.objects.all()
     return render(request, 'registrador/combos.html', {'tamanhos': tamanhos})
 
+@login_required(login_url='login')
 def combos_sabores(request, tamanho, preco):
-    sabores = Produto.objects.filter(categoria='sabor_promocao')  # ou outro filtro que represente os sabores disponíveis
+    sabores = Produto.objects.filter(categoria='sabor_promocao')
     return render(request, 'registrador/combos_sabores.html', {
         'tamanho': tamanho,
         'sabores': sabores,
         'preco': preco,
     })
 
+@login_required(login_url='login')
 def lanches(request):
-    query = request.GET.get('q')  # GET com G maiúsculo, mas .get com g minúsculo
+    query = request.GET.get('q')
     if query:
         produtos = Produto.objects.filter(categoria='lanche', nome__icontains=query)
     else:
@@ -97,6 +158,7 @@ def lanches(request):
         'query': query,
     })
 
+@login_required(login_url='login')
 def bebidas(request):
     query = request.GET.get('q')
 
@@ -109,6 +171,7 @@ def bebidas(request):
         'query': query
         })
 
+@login_required(login_url='login')
 def artesanais(request):
     query = request.GET.get('q')
     if query:
@@ -120,15 +183,19 @@ def artesanais(request):
         'query': query,
         })
 
+@login_required(login_url='login')
 def adicionar_ao_carrinho(request, produto_id):
     produto = get_object_or_404(Produto, id=produto_id)
-    quantidade = int(request.POST.get('quantidade', 1))  # 🟢 Pega a quantidade enviada
+    quantidade = int(request.POST.get('quantidade', 1))
 
     pedido_id = request.session.get('pedido_id')
     if pedido_id:
-        pedido = Pedido.objects.get(id=pedido_id)
+        pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
+        if not pedido:
+            pedido = Pedido.objects.create(usuario=request.user)
+            request.session['pedido_id'] = pedido.id
     else:
-        pedido = Pedido.objects.create()
+        pedido = Pedido.objects.create(usuario=request.user)
         request.session['pedido_id'] = pedido.id
 
     item, created = ItemPedido.objects.get_or_create(pedido=pedido, produto=produto)
@@ -138,24 +205,26 @@ def adicionar_ao_carrinho(request, produto_id):
         item.quantidade += quantidade
     item.save()
 
-    return redirect(request.META.get('HTTP_REFERER', '/'))  # 🔁 Retorna para a mesma página
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
+@login_required(login_url='login')
 def ver_carrinho(request):
     pedido_id = request.session.get('pedido_id')
     if not pedido_id:
         pedido = None
     else:
-        pedido = Pedido.objects.get(id=pedido_id)
+        pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
 
     return render(request, 'registrador/carrinho.html', {'pedido': pedido})
 
+@login_required(login_url='login')
 @require_POST
 def finalizar_pedido(request):
     pedido_id = request.session.get('pedido_id')
     if not pedido_id:
         return redirect('menu')
 
-    pedido = get_object_or_404(Pedido, id=pedido_id)
+    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
 
     # Salvar os campos do formulário
     pedido.nome_cliente = request.POST.get('nome_cliente')
@@ -187,11 +256,13 @@ def finalizar_pedido(request):
 
     return render(request, 'registrador/cupom_impressao.html', context)
 
+@login_required(login_url='login')
 def excluir_item(request, id):
-    item = get_object_or_404(ItemPedido, id=id)
+    item = get_object_or_404(ItemPedido, id=id, pedido__usuario=request.user)
     item.delete()
     return redirect('carrinho')
 
+@login_required(login_url='login')
 @csrf_exempt
 def adicionar_ajax(request):
     if request.method == 'POST':
@@ -203,9 +274,12 @@ def adicionar_ajax(request):
 
         pedido_id = request.session.get('pedido_id')
         if pedido_id:
-            pedido = Pedido.objects.get(id=pedido_id)
+            pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
+            if not pedido:
+                pedido = Pedido.objects.create(usuario=request.user)
+                request.session['pedido_id'] = pedido.id
         else:
-            pedido = Pedido.objects.create()
+            pedido = Pedido.objects.create(usuario=request.user)
             request.session['pedido_id'] = pedido.id
 
         item, created = ItemPedido.objects.get_or_create(pedido=pedido, produto=produto)
@@ -219,6 +293,7 @@ def adicionar_ajax(request):
     
     return JsonResponse({'sucesso': False}, status=400)
 
+@login_required(login_url='login')
 @csrf_exempt
 def adicionar_pizza_ajax(request):
     if request.method == 'POST':
@@ -234,10 +309,8 @@ def adicionar_pizza_ajax(request):
         if sabor2_id:
             sabor2 = get_object_or_404(Produto, id=sabor2_id)
 
-        # Calcular preço baseado no tamanho e sabores
         from decimal import Decimal
         
-        # Definir multiplicadores por tamanho
         multiplicadores = {
             'Pequena': Decimal('1.0'),
             'Média': Decimal('1.0'),
@@ -245,18 +318,14 @@ def adicionar_pizza_ajax(request):
             'Gigante': Decimal('1.0')
         }
         
-        # Sempre usar o maior preço entre os sabores (se houver segundo sabor)
         preco_sabor1 = produto.preco or Decimal('0')
         if sabor2:
             preco_sabor2 = sabor2.preco or Decimal('0')
-            # Para pizza de dois sabores: usar sempre o MAIOR preço SEM multiplicador
             preco_final = max(preco_sabor1, preco_sabor2)
         else:
-            # Para pizza de um sabor: aplicar o multiplicador de tamanho
             preco_base = preco_sabor1
             preco_final = preco_base * multiplicadores.get(tamanho, Decimal('1.0'))
 
-        # Criar descrição do produto
         if sabor2:
             descricao = f"Pizza {tamanho} - 1/2 {produto.nome} + 1/2 {sabor2.nome}"
         else:
@@ -264,12 +333,14 @@ def adicionar_pizza_ajax(request):
 
         pedido_id = request.session.get('pedido_id')
         if pedido_id:
-            pedido = Pedido.objects.get(id=pedido_id)
+            pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
+            if not pedido:
+                pedido = Pedido.objects.create(usuario=request.user)
+                request.session['pedido_id'] = pedido.id
         else:
-            pedido = Pedido.objects.create()
+            pedido = Pedido.objects.create(usuario=request.user)
             request.session['pedido_id'] = pedido.id
 
-        # Criar novo item sempre (não somar com existente para permitir diferentes tamanhos)
         item = ItemPedido.objects.create(
             pedido=pedido,
             produto=produto,
@@ -283,6 +354,7 @@ def adicionar_pizza_ajax(request):
     
     return JsonResponse({'sucesso': False}, status=400)
 
+@login_required(login_url='login')
 @require_POST
 def adicionar_combo(request):
     tamanho = request.POST.get('tamanho')
@@ -295,21 +367,19 @@ def adicionar_combo(request):
     else:
         sabor2 = get_object_or_404(Produto, id=request.POST.get('sabor2'))
 
-    # Produto genérico para combos personalizados
     produto_base = get_object_or_404(Produto, nome='Pizza Combo Personalizado')
-
-    # Descrição detalhada do combo
     descricao_combo = f"Pizza {tamanho} - 1/2 {sabor1.nome} + 1/2 {sabor2.nome}"
 
-    # Obter ou criar o pedido da sessão
     pedido_id = request.session.get('pedido_id')
     if not pedido_id:
-        pedido = Pedido.objects.create()
+        pedido = Pedido.objects.create(usuario=request.user)
         request.session['pedido_id'] = pedido.id
     else:
-        pedido = Pedido.objects.get(id=pedido_id)
+        pedido = Pedido.objects.filter(id=pedido_id, usuario=request.user).first()
+        if not pedido:
+            pedido = Pedido.objects.create(usuario=request.user)
+            request.session['pedido_id'] = pedido.id
 
-    # Criar item no carrinho com preço e descrição personalizada
     ItemPedido.objects.create(
         pedido=pedido,
         produto=produto_base,
@@ -321,8 +391,9 @@ def adicionar_combo(request):
     return redirect('menu')
 
 
+@login_required(login_url='login')
 def reimprimir_pedido(request, pedido_id):
-    pedido = get_object_or_404(Pedido, id=pedido_id, finalizado=True)
+    pedido = get_object_or_404(Pedido, id=pedido_id, finalizado=True, usuario=request.user)
     
     context = {
         'pedido': pedido,
@@ -331,18 +402,20 @@ def reimprimir_pedido(request, pedido_id):
     
     return render(request, 'registrador/cupom_impressao.html', context)
 
+@login_required(login_url='login')
 def atualizar_observacao(request, item_id):
-    item = get_object_or_404(ItemPedido, id=item_id)
+    item = get_object_or_404(ItemPedido, id=item_id, pedido__usuario=request.user)
     if request.method == "POST":
         observacao = request.POST.get("observacao", "").strip()
         item.observacao = observacao
         item.save()
     return redirect("carrinho")
 
+@login_required(login_url='login')
 def relatorio_vendas(request):
     from django.core.paginator import Paginator
     
-    pedidos = Pedido.objects.filter(finalizado=True).order_by('-criado_em')
+    pedidos = Pedido.objects.filter(finalizado=True, usuario=request.user).order_by('-criado_em')
     
     # Filtros por data/hora
     data_inicio = request.GET.get('data_inicio')

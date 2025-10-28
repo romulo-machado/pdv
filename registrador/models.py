@@ -1,6 +1,5 @@
 from django.db import models
-
-from django.db import models
+from django.contrib.auth.models import User
 
 class Produto(models.Model):
     CATEGORIAS = (
@@ -26,6 +25,7 @@ class Produto(models.Model):
         return self.nome
 
 class Pedido(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     finalizado = models.BooleanField(default=False)
     nome_cliente = models.CharField(max_length=100, blank=True, null=True)

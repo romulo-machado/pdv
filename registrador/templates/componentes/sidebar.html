@@ -9,4 +9,11 @@
     <a href="{% url 'bebidas' %}">🥤 Bebidas</a>
     <a href="{% url 'espeto' %}">🍖 Restaurante</a>
     <a href="{% url 'carrinho' %}">🛒 Carrinho</a>
-</div>
+    <a class="nav-link" href="{% url 'relatorio_vendas' %}">📊 Relatórios</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="{% url 'logout' %}">🚪 Sair ({{ user.username }})</a>
+            </li>
+        </ul>
+    </div>
+</nav>
